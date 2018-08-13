@@ -11,6 +11,7 @@ import { reset, signBroadcastAndSave, updateAmount, updateSpendPending, uniqueId
 import { getError, getForceUpdateGuiCounter, getKeyboardIsVisible, getPending, getPublicAddress, getTransaction } from './selectors'
 import { SendConfirmation } from './SendConfirmation.ui'
 import type { SendConfirmationDispatchProps, SendConfirmationStateProps } from './SendConfirmation.ui'
+import { activated as uniqueIdentifierModalActivated } from './components/UniqueIdentifierModal/UniqueIdentifierModalActions.js'
 
 const mapStateToProps = (state: State): SendConfirmationStateProps => {
   const sceneState = state.ui.scenes.sendConfirmation
@@ -90,7 +91,10 @@ const mapDispatchToProps = (dispatch: Dispatch): SendConfirmationDispatchProps =
   reset: () => dispatch(reset()),
   updateSpendPending: (pending: boolean): any => dispatch(updateSpendPending(pending)),
   signBroadcastAndSave: (): any => dispatch(signBroadcastAndSave()),
-  onChangePin: (pin: string) => dispatch(newPin(pin))
+  onChangePin: (pin: string) => dispatch(newPin(pin)),
+  uniqueIdentifierButtonPressed: () => {
+    dispatch(uniqueIdentifierModalActivated())
+  }
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(SendConfirmation)

@@ -20,10 +20,11 @@ import Gradient from '../../components/Gradient/Gradient.ui'
 import Recipient from '../../components/Recipient/index.js'
 import SafeAreaView from '../../components/SafeAreaView'
 import ABSlider from '../../components/Slider/index.js'
-import { UniqueIdentifier } from './components/UniqueIdentifier/UniqueIdentifier.ui.js'
 import { UniqueIdentifierModalConnect as UniqueIdentifierModal } from './components/UniqueIdentifierModal/UniqueIdentifierModalConnector.js'
 import { PinInput } from '../../components/PinInput/PinInput.ui.js'
 import styles from './styles.js'
+
+import { PrimaryButton } from '../../components/Modals/components/PrimaryButton.ui.js'
 
 const DIVIDE_PRECISION = 18
 
@@ -60,7 +61,8 @@ export type SendConfirmationDispatchProps = {
   reset: () => any,
   updateAmount: (nativeAmount: string, exchangeAmount: string, fiatPerCrypto: string) => any,
   uniqueIdentifierUpdated: (uniqueIdentifier: string) => any,
-  onChangePin: (pin: string) => mixed
+  onChangePin: (pin: string) => mixed,
+  uniqueIdentifierButtonPressed: () => void
 }
 
 type routerParam = {
@@ -155,7 +157,7 @@ export class SendConfirmation extends Component<Props, State> {
     const cryptoBalanceAmountString = cryptoBalanceAmount ? intl.formatNumber(decimalOrZero(bns.toFixed(cryptoBalanceAmount, 0, 6), 6)) : '0' // limit decimals and check if infitesimal, also cut off trailing zeroes (to right of significant figures)
     const balanceInFiatString = intl.formatNumber(this.props.balanceInFiat || 0, { toFixed: 2 })
 
-    const { authRequired, destination } = this.props
+    const { authRequired, currencyCode, destination, uniqueIdentifier } = this.props
     const SEND_TO_DESTINATION_TEXT = sprintf(s.strings.send_to_title, destination)
 
     return (
@@ -199,23 +201,23 @@ export class SendConfirmation extends Component<Props, State> {
                   )}
 
                   {!!destination && (
-                    <Scene.Row style={{ paddingVertical: 4 }}>
+                    <Scene.Row style={{ paddingVertical: 10 }}>
                       <Recipient.Text style={{}}>
                         <Text>{SEND_TO_DESTINATION_TEXT}</Text>
                       </Recipient.Text>
                     </Scene.Row>
                   )}
 
-                  {!!this.props.uniqueIdentifier && (
-                    <Scene.Row>
-                      <UniqueIdentifier.Text>
-                        <Text>{uniqueIdentifierText(this.props.currencyCode, this.props.uniqueIdentifier)}</Text>
-                      </UniqueIdentifier.Text>
+                  {(this.props.currencyCode === 'XMR' || this.props.currencyCode === 'XRP') && (
+                    <Scene.Row style={{ paddingVertical: 10 }}>
+                      <PrimaryButton style={{ height: 40 }} onPress={this.props.uniqueIdentifierButtonPressed}>
+                        <PrimaryButton.Text ellipsizeMode={'tail'}>{uniqueIdentifierText(currencyCode, uniqueIdentifier)}</PrimaryButton.Text>
+                      </PrimaryButton>
                     </Scene.Row>
                   )}
 
                   {authRequired === 'pin' && (
-                    <Scene.Row style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
+                    <Scene.Row style={{ paddingVertical: 10, width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
                       <Text style={styles.rowText}>{s.strings.four_digit_pin}</Text>
 
                       <View style={styles.pinInputSpacer} />
@@ -229,7 +231,9 @@ export class SendConfirmation extends Component<Props, State> {
               </Scene.Padding>
             </View>
 
-            <Scene.Row style={styles.activityIndicatorSpace}>{this.props.pending && <ActivityIndicator style={[{ flex: 1, alignSelf: 'center' }]} size={'small'} />}</Scene.Row>
+            <Scene.Row style={styles.activityIndicatorSpace}>
+              {this.props.pending && <ActivityIndicator style={[{ flex: 1, alignSelf: 'center' }]} size={'small'} />}
+            </Scene.Row>
 
             <Scene.Footer style={styles.footer}>
               <ABSlider
@@ -324,10 +328,14 @@ export class SendConfirmation extends Component<Props, State> {
   }
 }
 
-const uniqueIdentifierText = (currencyCode: string, uniqueIdentifier: string): string => {
-  return currencyCode === 'XRP'
-    ? sprintf(s.strings.unique_identifier_display_text, s.strings.unique_identifier_destination_tag, uniqueIdentifier)
-    : currencyCode === 'XMR'
-      ? sprintf(s.strings.unique_identifier_display_text, s.strings.unique_identifier_payment_id, uniqueIdentifier)
-      : sprintf(s.strings.unique_identifier_display_text, s.strings.unique_identifier, uniqueIdentifier)
+export const uniqueIdentifierText = (currencyCode: string, uniqueIdentifier?: string): string => {
+  if (!uniqueIdentifier) {
+    if (currencyCode === 'XRP') return sprintf(s.strings.unique_identifier_add, s.strings.unique_identifier_destination_tag)
+    if (currencyCode === 'XMR') return sprintf(s.strings.unique_identifier_add, s.strings.unique_identifier_payment_id)
+  }
+
+  if (currencyCode === 'XRP') return sprintf(s.strings.unique_identifier_display_text, s.strings.unique_identifier_destination_tag, uniqueIdentifier)
+  if (currencyCode === 'XMR') return sprintf(s.strings.unique_identifier_display_text, s.strings.unique_identifier_payment_id, uniqueIdentifier)
+
+  return sprintf(s.strings.unique_identifier_display_text, s.strings.unique_identifier, uniqueIdentifier)
 }
