@@ -231,15 +231,16 @@ exports[`SendConfirmation should render with destination 1`] = `
           </Item>
         </Padding>
       </View>
-      <Row />
-      <Footer
+      <Row
         style={
-          Array [
-            Object {
-              "width": "100%",
-            },
-          ]
+          Object {
+            "height": 54,
+            "paddingVertical": 18,
+          }
         }
+      />
+      <Footer
+        style={Object {}}
       >
         <ABSlider
           forceUpdateGuiCounter={0}
